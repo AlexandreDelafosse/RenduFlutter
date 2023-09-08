@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:users/data_base/database.dart';
+import 'package:users/data_base/data.dart';
+
+import 'package:users/pages/user_information.dart'; // Importez la page UserInformationPage
 
 class LoginPage extends StatefulWidget {
   final DatabaseHelper databaseHelper;
@@ -8,11 +11,24 @@ class LoginPage extends StatefulWidget {
 
   @override
   _LoginPageState createState() => _LoginPageState();
+
+  void onLoginSuccess(BuildContext context, User user) {
+    // Naviguez vers la page UserInformationPage avec les données fictives
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserInformationPage(user: user, username: '', password: '',),
+      ),
+    );
+  }
+
 }
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _loginUserController = TextEditingController();
   final TextEditingController _loginPasswordController = TextEditingController();
+
+  User? get fakeUser => null;
 
   @override
   Widget build(BuildContext context) {
@@ -41,16 +57,33 @@ class _LoginPageState extends State<LoginPage> {
                 final loginPassword = _loginPasswordController.text;
 
                 if (loginUser.isNotEmpty && loginPassword.isNotEmpty) {
-                  final userId = await widget.databaseHelper.insertUser(
-                    loginUser,
-                    loginPassword,
+                  final fakeUser = fakeUsers.firstWhere(
+                        (user) =>
+                    user.loginUser == loginUser && user.loginPassword == loginPassword,
+                    orElse: () => User(id: -1, loginUser: '', loginPassword: ''),
                   );
-                  print('Inserted user with ID: $userId');
+
+                  if (fakeUser.id != -1) {
+                    // Utilisateur fictif trouvé, naviguez vers UserInformationPage
+                    widget.onLoginSuccess(context, fakeUser);
+                  } else {
+                    // Utilisateur fictif non trouvé
+                    print('Invalid credentials');
+                  }
                 } else {
                   print('Please fill in all fields.');
                 }
               },
               child: Text('Login'),
+            ),
+            SizedBox(height: 20), // Espace entre les boutons
+            ElevatedButton(
+              onPressed: () {
+                // Accédez à UserInformationPage avec des données fictives
+                widget.onLoginSuccess(context, fakeUser!);
+
+              },
+              child: Text('Accéder à User Information'),
             ),
           ],
         ),
